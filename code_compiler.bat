@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ====================================================
-echo             PYINSTALLER CUSTOM PATH COMPILER
+echo           COMPLETE PATH CONTROL COMPILER
 echo ====================================================
 echo.
 
@@ -11,43 +11,48 @@ set /p USER_PATH="1. Enter full path to .py file: "
 set "USER_PATH=%USER_PATH:"=%"
 
 if not exist "%USER_PATH%" (
-    echo [ERROR] File not found. Try again.
+    echo [ERROR] Python file not found.
     goto GET_FILE_PATH
 )
 
 :GET_SAVE_PATH
 echo.
-set /p SAVE_PATH="2. Enter path where the EXE should be saved: "
+set /p SAVE_PATH="2. Enter the folder to save EVERYTHING into: "
 set "SAVE_PATH=%SAVE_PATH:"=%"
 
-:: Create the folder if it doesn't exist
-if not exist "%SAVE_PATH%" (
-    echo Folder does not exist. Creating it now...
-    mkdir "%SAVE_PATH%"
-)
+:: Create the master folder if it doesn't exist
+if not exist "%SAVE_PATH%" mkdir "%SAVE_PATH%"
+
+:: Define sub-folders to keep it organized (Optional but recommended)
+set "DIST_DIR=%SAVE_PATH%\output"
+set "BUILD_DIR=%SAVE_PATH%\temp_build"
 
 for %%i in ("%USER_PATH%") do set FILENAME=%%~ni
 
 echo.
 echo ----------------------------------------------------
-echo ^> Compiling: %FILENAME%
-echo ^> Destination: %SAVE_PATH%
+echo ^> Source: %USER_PATH%
+echo ^> Target Directory: %SAVE_PATH%
 echo ----------------------------------------------------
 
-:: --distpath: Specifies where to put the bundled app
-:: --workpath: (Optional) Keeps the temporary build files in the save path too
+:: Execute PyInstaller with full path redirection
 pyinstaller --onefile --windowed --noconfirm ^
     --name "%FILENAME%" ^
-    --distpath "%SAVE_PATH%" ^
+    --distpath "%DIST_DIR%" ^
+    --workpath "%BUILD_DIR%" ^
+    --specpath "%SAVE_PATH%" ^
     "%USER_PATH%"
 
 if %ERRORLEVEL% EQU 0 (
     echo.
     echo ====================================================
-    echo SUCCESS!
-    echo YOUR EXE IS HERE: "%SAVE_PATH%\%FILENAME%.exe"
+    echo SUCCESS! 
+    echo.
+    echo EXE Location:  "%DIST_DIR%"
+    echo Build Files:   "%BUILD_DIR%"
+    echo Spec File:     "%SAVE_PATH%\%FILENAME%.spec"
     echo ====================================================
-    start "" "%SAVE_PATH%"
+    start "" "%DIST_DIR%"
 ) else (
     echo.
     echo [ERROR] Compilation failed.
