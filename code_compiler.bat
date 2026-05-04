@@ -1,45 +1,53 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo ----------------------------------------------------
-echo           PYTHON TO EXE COMPILER (Manual)
-echo ----------------------------------------------------
+echo ====================================================
+echo             PYINSTALLER PATH COMPILER
+echo ====================================================
+echo.
+echo TIP: You can right-click in this window to paste a path,
+echo      or drag the file directly into this window.
 echo.
 
-:GET_FILE
-:: 1. Ask the user for the file name
-set /p TARGET="Enter the full filename (e.g., myscript.py): "
+:GET_PATH
+set /p USER_PATH="Enter full path to .py file: "
 
-:: 2. Check if the file exists
-if not exist "%TARGET%" (
-    echo [ERROR] File "%TARGET%" not found in this folder.
-    echo Please try again.
+:: Remove any quotes the user might have included in their paste
+set "USER_PATH=%USER_PATH:"=%"
+
+:: Check if the file exists
+if not exist "%USER_PATH%" (
     echo.
-    goto GET_FILE
-)
-
-:: 3. Ask for the output name (Optional)
-set /p EXE_NAME="Enter the desired name for your EXE (press Enter for default): "
-
-:: If the user just hits enter, use the script's name
-if "%EXE_NAME%"=="" (
-    set EXE_NAME=%~n1
+    echo [ERROR] Could not find file at: "%USER_PATH%"
+    echo Please check the path and try again.
+    echo.
+    goto GET_PATH
 )
 
 echo.
-echo ^> Compiling %TARGET% into %EXE_NAME%.exe...
+echo [FOUND] %USER_PATH%
 echo ----------------------------------------------------
+echo.
 
-:: 4. Run PyInstaller
-pyinstaller --onefile --name "%EXE_NAME%" "%TARGET%"
+:: Extract the filename without extension for the EXE name
+for %%i in ("%USER_PATH%") do set FILENAME=%%~ni
 
-:: 5. Success check
+echo ^> Compiling...
+:: Using quotes around %USER_PATH% ensures it works with spaces
+pyinstaller --onefile --windowed --name "%FILENAME%" "%USER_PATH%"
+
 if %ERRORLEVEL% EQU 0 (
     echo.
-    echo [SUCCESS] Compilation finished. Your EXE is in the 'dist' folder.
+    echo ====================================================
+    echo SUCCESS: %FILENAME%.exe created in the 'dist' folder.
+    echo ====================================================
+    :: Open the dist folder automatically
+    start "" "dist"
 ) else (
     echo.
-    echo [ERROR] Compilation failed. Check the logs above.
+    echo [ERROR] Something went wrong during compilation.
 )
 
-pause
+echo.
+echo Press any key to exit...
+pause >nul
