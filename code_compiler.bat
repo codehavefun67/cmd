@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 echo ====================================================
-echo           COMPLETE PATH CONTROL COMPILER
+echo           TOTAL OUTPUT CONTROL COMPILER
 echo ====================================================
 echo.
 
@@ -17,30 +17,26 @@ if not exist "%USER_PATH%" (
 
 :GET_SAVE_PATH
 echo.
-set /p SAVE_PATH="2. Enter the folder to save EVERYTHING into: "
+set /p SAVE_PATH="2. Enter the target folder for all outputs: "
 set "SAVE_PATH=%SAVE_PATH:"=%"
 
 :: Create the master folder if it doesn't exist
 if not exist "%SAVE_PATH%" mkdir "%SAVE_PATH%"
-
-:: Define sub-folders to keep it organized (Optional but recommended)
-set "DIST_DIR=%SAVE_PATH%\output"
-set "BUILD_DIR=%SAVE_PATH%\temp_build"
 
 for %%i in ("%USER_PATH%") do set FILENAME=%%~ni
 
 echo.
 echo ----------------------------------------------------
 echo ^> Source: %USER_PATH%
-echo ^> Target Directory: %SAVE_PATH%
+echo ^> Target: %SAVE_PATH%
 echo ----------------------------------------------------
 
-:: Execute PyInstaller with full path redirection
+:: Pointing all internal PyInstaller paths to your chosen folder
 pyinstaller --onefile --windowed --noconfirm ^
     --name "%FILENAME%" ^
-    --distpath "%DIST_DIR%" ^
-    --workpath "%BUILD_DIR%" ^
     --specpath "%SAVE_PATH%" ^
+    --workpath "%SAVE_PATH%\build" ^
+    --distpath "%SAVE_PATH%\dist" ^
     "%USER_PATH%"
 
 if %ERRORLEVEL% EQU 0 (
@@ -48,11 +44,11 @@ if %ERRORLEVEL% EQU 0 (
     echo ====================================================
     echo SUCCESS! 
     echo.
-    echo EXE Location:  "%DIST_DIR%"
-    echo Build Files:   "%BUILD_DIR%"
-    echo Spec File:     "%SAVE_PATH%\%FILENAME%.spec"
+    echo [EXE Location]   -> %SAVE_PATH%\dist\
+    echo [Build Folder]   -> %SAVE_PATH%\build\
+    echo [Spec File]      -> %SAVE_PATH%\%FILENAME%.spec
     echo ====================================================
-    start "" "%DIST_DIR%"
+    start "" "%SAVE_PATH%"
 ) else (
     echo.
     echo [ERROR] Compilation failed.
